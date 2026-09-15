@@ -10,10 +10,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATA_DIR
-        value: /opt/render/project/data
+        value: /tmp/skribbl-data
       - key: FRONTEND_URL
         sync: false
-    disk:
-      name: skribbl-sqlite-data
-      mountPath: /opt/render/project/data
-      sizeGB: 1
