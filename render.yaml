@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: skribbl-clone-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /opt/render/project/data
+      - key: FRONTEND_URL
+        sync: false
+    disk:
+      name: skribbl-sqlite-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
