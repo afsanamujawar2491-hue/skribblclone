@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { socket } from "../socket";
 
 interface DrawingCanvasProps {
@@ -130,7 +130,7 @@ function DrawingCanvas({ isDrawer, roomId }: DrawingCanvasProps) {
     };
   }, []);
 
-  const getPosition = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const getPosition = (event: PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
     return {
@@ -139,8 +139,10 @@ function DrawingCanvas({ isDrawer, roomId }: DrawingCanvasProps) {
     };
   };
 
-  const startDrawing = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDrawing = (event: PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawer) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
     const { x, y } = getPosition(event);
     const stroke: Stroke = {
       type: "stroke",
@@ -164,8 +166,9 @@ function DrawingCanvas({ isDrawer, roomId }: DrawingCanvasProps) {
     socket.emit("draw_start", { roomId, x, y, color, size: brushSize, isEraser });
   };
 
-  const draw = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (event: PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawer || !isDrawing || !activeLocalStroke.current) return;
+    event.preventDefault();
     const { x, y } = getPosition(event);
     activeLocalStroke.current.points.push({ x, y });
 
@@ -179,8 +182,12 @@ function DrawingCanvas({ isDrawer, roomId }: DrawingCanvasProps) {
     socket.emit("draw_move", { roomId, x, y });
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (event?: PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawer || !isDrawing) return;
+    event?.preventDefault();
+    if (event?.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     setIsDrawing(false);
     if (activeLocalStroke.current) {
       localStrokes.current.push(activeLocalStroke.current);
@@ -210,11 +217,13 @@ function DrawingCanvas({ isDrawer, roomId }: DrawingCanvasProps) {
           ref={canvasRef}
           width={900}
           height={550}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          className={`block h-auto w-full ${isDrawer ? "cursor-crosshair" : "cursor-not-allowed"}`}
+          onPointerDown={startDrawing}
+          onPointerMove={draw}
+          onPointerUp={stopDrawing}
+          onPointerCancel={stopDrawing}
+          onPointerLeave={stopDrawing}
+          style={{ touchAction: "none" }}
+          className={`block h-auto w-full select-none ${isDrawer ? "cursor-crosshair" : "cursor-not-allowed"}`}
         />
       </div>
 
