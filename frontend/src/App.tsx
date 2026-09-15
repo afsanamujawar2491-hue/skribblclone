@@ -59,7 +59,6 @@ function App() {
   const [guess, setGuess] = useState("");
   const [winner, setWinner] = useState<Player | null>(null);
   const [gameOver, setGameOver] = useState<Player[]>([]);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
   const [confettiKey, setConfettiKey] = useState(0);
 
@@ -210,9 +209,7 @@ function App() {
       setGameOver(leaderboard);
       setPlayers(leaderboard);
       setConfettiKey((key) => key + 1);
-      setShowConfetti(true);
       setPhase("GAME_OVER");
-      window.setTimeout(() => setShowConfetti(false), 10000);
     };
 
     const onJoinResult = (data: { ok: boolean; message?: string }) => {
